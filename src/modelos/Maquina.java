@@ -52,9 +52,7 @@ public class Maquina
             }
             estadoAtual = resultadoDaTransicao[0];
             String elementoEscrito = resultadoDaTransicao[1];
-            System.out.println(entradaEsaida.remove(cabecote));
             entradaEsaida.add(cabecote, elementoEscrito);
-            System.out.println(entradaEsaida.get(cabecote));
             if (elementoLido.equals("$"))
                 entradaEsaida.add("$");
             movimentoDoCabecote = resultadoDaTransicao[2];
