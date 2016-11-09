@@ -4,80 +4,74 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Maquina
-{
+public class Maquina {
     private final String _estados, _simbolosDoAlfabeto, _simbolosDaFita, 
-                   _codigoDoEstadoInicial, _funcaoDeTransicao;
+                   _codigoDoEstadoAtual, _funcaoDeTransicao;
     private final List<String> _funcaoDeTransicaoArray;
     private Fita _fita;
             
     public Maquina (String estados, String simbolosDoAlfabeto, String simbolosDaFita,
-              String codigoDoEstadoInicial, String funcaoDeTransicao)
-    {
+              String codigoDoEstadoInicial, String funcaoDeTransicao) {
         _funcaoDeTransicaoArray = new ArrayList<>();
         _estados = estados;
         _simbolosDoAlfabeto = simbolosDoAlfabeto;
         _simbolosDaFita = simbolosDaFita;
-        _codigoDoEstadoInicial = codigoDoEstadoInicial;
+        _codigoDoEstadoAtual = codigoDoEstadoInicial;
         _funcaoDeTransicao = funcaoDeTransicao;
         _funcaoDeTransicaoArray.addAll(Arrays.asList(_funcaoDeTransicao.split(", ")));
     }
     
-    private String[] funcaoDeTransicao(String estadoAtual, String elementoLido)
-    {
+    private String[] funcaoDeTransicao(String estadoAtual, String elementoLido) {
         for (String regra : _funcaoDeTransicaoArray)
-        {
             if (regra.substring(0, regra.indexOf("/")).equals(estadoAtual + "-" + elementoLido))
                 return regra.substring(regra.indexOf("/") + 1).split("-");
-        }
         return null;
     }
     
-    public int processar(String entrada)
-    {
-        String estadoAtual = _codigoDoEstadoInicial, 
-               movimentoDoCabecote = "";
-        ArrayList<String> entradaEsaida = pseudoFita(entrada);
-        int cabecote = ((entradaEsaida.size() - 1) / 2) + 1;
+    public int processar(String entrada) {
+        String estadoAtual = _codigoDoEstadoAtual, movimentoDoPonteiro = "";
+        ArrayList<String> saida = saidaEmArray(entrada);
+        int ponteiro = 1;
         Arquivo relatorio = new Arquivo();
-        while (!movimentoDoCabecote.equals("H"))
-        {
-            String elementoLido = entradaEsaida.get(cabecote);
-            String resultadoDaTransicao[] = funcaoDeTransicao(estadoAtual, elementoLido);
-            String estadoAnterior = estadoAtual;
-            if (resultadoDaTransicao == null)
-            {
-                _fita = new Fita(_estados, _simbolosDoAlfabeto, _simbolosDaFita, _codigoDoEstadoInicial, _funcaoDeTransicao, entradaEsaida);
+        while (naoEhHalt(movimentoDoPonteiro)) {
+            String simboloLido = saida.get(ponteiro), estadoAnterior = estadoAtual, 
+            resultadoDaFuncaoDeTransicao[] = funcaoDeTransicao(estadoAtual, simboloLido), simboloEscrito;
+            if (simboloLido.equals("$"))    
+                saida.add("$");
+            if (resultadoDaFuncaoDeTransicao == null) {
+                criarFita(entrada, saida);
                 return 0;
             }
-            estadoAtual = resultadoDaTransicao[0];
-            String elementoEscrito = resultadoDaTransicao[1];
-            entradaEsaida.add(cabecote, elementoEscrito);
-            if (elementoLido.equals("$"))
-                entradaEsaida.add("$");
-            movimentoDoCabecote = resultadoDaTransicao[2];
-            cabecote = movimentoDoCabecote.equals("E") ? cabecote - 1 : cabecote + 1;
-            relatorio.geraRelatorio(estadoAnterior, elementoLido, estadoAtual, elementoEscrito, movimentoDoCabecote);
+            estadoAtual = resultadoDaFuncaoDeTransicao[0];
+            simboloEscrito = resultadoDaFuncaoDeTransicao[1];
+            movimentoDoPonteiro = resultadoDaFuncaoDeTransicao[2];
+            saida.remove(ponteiro);
+            saida.add(ponteiro, simboloEscrito);
+            ponteiro += movimentoDoPonteiro.equals("E") ? - 1 : 1;
+            relatorio.geraRelatorio(estadoAnterior, simboloLido, estadoAtual, simboloEscrito, movimentoDoPonteiro);
         }
-        _fita = new Fita(_estados, _simbolosDoAlfabeto, _simbolosDaFita, _codigoDoEstadoInicial, _funcaoDeTransicao, entradaEsaida);
+        criarFita(entrada, saida);
         return 1;
     }
-    
-    public ArrayList<String> pseudoFita(String entrada)
-    {
-        ArrayList<String> entradaEsaida = new ArrayList<>();
-        char[] separada = entrada.toCharArray();
-        for (char ch : separada)
-            entradaEsaida.add(String.valueOf(ch));
-        entradaEsaida.add("#");
-        for (char ch : separada)
-            entradaEsaida.add(String.valueOf(ch));
-        entradaEsaida.add("$");
-        return entradaEsaida;
+
+    private void criarFita(String entrada, ArrayList<String> saida) {
+        _fita = new Fita(_estados, _simbolosDoAlfabeto, _simbolosDaFita, _codigoDoEstadoAtual, _funcaoDeTransicao, entrada, saida);
+    }
+
+    private static boolean naoEhHalt(String movimentoDoPonteiro) {
+        return !movimentoDoPonteiro.equals("H");
     }
     
-    public String fitaEmBinario()
-    {
+    private ArrayList<String> saidaEmArray(String entrada) {
+        ArrayList<String> saida = new ArrayList<>();
+        for (int i = 0; i < entrada.length(); i++)
+            saida.add(entrada.substring(i, i + 1));
+        saida.add(0, "#");
+        saida.add("$");
+        return saida;
+    }
+    
+    public String fitaEmBinario() {
         return _fita.saidaEmBinario();
     }
 }
