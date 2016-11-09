@@ -55,7 +55,8 @@ public class Maquina {
     }
 
     private void criarFita(String entrada, ArrayList<String> saida) {
-        _fita = new Fita(_estados, _simbolosDoAlfabeto, _simbolosDaFita, _codigoDoEstadoAtual, _funcaoDeTransicao, entrada, saida);
+        _fita = new Fita(_estados, _simbolosDoAlfabeto, _simbolosDaFita, _codigoDoEstadoAtual, 
+                         _funcaoDeTransicao, entrada, saida);
     }
 
     private static boolean naoEhHalt(String movimentoDoPonteiro) {
